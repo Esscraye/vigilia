@@ -23,7 +23,7 @@ async def analyze_logs():
             },
             {
                 "role": "user",
-                "content": "Give me a name for your system (an IDS using AI to detect nulnerability)",  # Envoyer le contenu des logs
+                "content": logs,  # Envoyer le contenu des logs
             }
         ],
         model="llama-3.1-70b-versatile",  # Modèle à utiliser
