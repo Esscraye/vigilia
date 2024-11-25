@@ -7,19 +7,25 @@ app = FastAPI()
 
 event_queue = []
 
-results = {
+results = [{
   "timestamp": "string",
   "activity": "string",
   "risk_level": "Low",
   "details": "string"
-}
+},
+{
+    "timestamp": "string2",
+  "activity": "string2",
+  "risk_level": "High",
+  "details": "string2"
+}]
 
-@app.get("/")
+@app.get("/api")
 async def read_root():
     return {"Hello": "World"}
 
 
-@app.get("/analyze-logs")
+@app.get("/api/analyze-logs")
 async def analyze_logs_endpoint():
     response = await analyze_logs()
     event = {"data": response}
@@ -35,15 +41,15 @@ def data_streamer():
             time.sleep(1)
 
 
-@app.get('/notifications/sse')
+@app.get('/api/notifications/sse')
 async def main():
     return EventSourceResponse(data_streamer(), media_type='text/event-stream')
 
-@app.post('/send-event')
+@app.post('/api/send-event')
 async def send_event(event: str):
     event_queue.append('event')
     return {"message": "event sent"}
 
-@app.get('/results')
+@app.get('/api/results')
 async def get_results():
     return results
