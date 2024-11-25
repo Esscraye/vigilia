@@ -1,44 +1,53 @@
 import os
-from dotenv import load_dotenv
-from groq import Groq
 import json
+import subprocess
+from fastapi import HTTPException
 
-load_dotenv()
-
-client = Groq(
-    api_key=os.environ.get("GROQ_API_KEY")
-)
-
+# Fonction pour analyser les logs
 async def analyze_logs():
-    log_file_path = os.path.join('logs', 'data.log')  # Remplacez par le nom de votre fichier log
+    log_file_path = os.path.join('logs', 'data2.log')  # Chemin vers le fichier logs
+    if not os.path.exists(log_file_path):
+        raise HTTPException(status_code=404, detail="Log file not found")
+
     with open(log_file_path, 'r') as file:
         logs = file.read()
     
-    # Préparer le message pour l'IA
-    chat_completion = client.chat.completions.create(
-        messages=[
-            {
-                "role": "system",
-                "content": "You are an Intrusion Detection System (IDS) that analyzes log files. Please analyze the following logs and return a JSON response indicating whether there is a problem or not."
-            },
-            {
-                "role": "user",
-                "content": logs,  # Envoyer le contenu des logs
-            }
-        ],
-        model="llama-3.1-70b-versatile",  # Modèle à utiliser
-        stream=False,
-    )
+        # Préparer le prompt pour Ollama
+    prompt = f"""
+    You are an Intrusion Detection System (IDS) that analyzes log files. 
+    Please analyze the following logs and return a JSON response indicating whether there is a problem or not. 
+    Give me the number of malicious events detected. Ignore the malicious column for anomaly detection
 
-    response = chat_completion.choices[0].message.content  # Récupérer la réponse de l'IA
-    if "```json" in response:
-        response = response.split("```json")[1].split("```")[0]
-    elif "```" in response:
-        response = response.split("```")[1].split("```")[0]
-    print(response)
+    Logs:
+    {logs}
+    """
+
     try:
-        response = json.loads(response)
-    except json.JSONDecodeError:
-        print("JSONDecodeError")
-        response = False
-    return response  # Retourner la réponse de l'IA
+        # Appeler Ollama en local avec un pipe (stdin)
+        result = subprocess.run(
+            ["ollama", "run", "llama3.2"],
+            input=prompt,
+            capture_output=True,
+            text=True
+        )
+        
+        if result.returncode != 0:
+            raise HTTPException(status_code=500, detail=f"Error from Ollama: {result.stderr}")
+
+        response = result.stdout.strip()
+
+        # Extraire la partie JSON si elle est entourée de ```json ou ```
+        if "```json" in response:
+            response = response.split("```json")[1].split("```")[0]
+        elif "```" in response:
+            response = response.split("```")[1].split("```")[0]
+
+        # Charger la réponse JSON
+        try:
+            response = json.loads(response)
+        except json.JSONDecodeError:
+            raise HTTPException(status_code=500, detail="Invalid JSON response")
+        return response
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Exception: {str(e)}")
+
