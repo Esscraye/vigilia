@@ -17,8 +17,10 @@ export default function AdminNotifications() {
     const eventSource = new EventSource('/api/notifications/sse')
 
     eventSource.onmessage = (event) => {
-      const newNotification = JSON.parse(event.data)
-      setNotifications((prevNotifications) => [...prevNotifications, newNotification])
+      if (event.data) {
+        const newNotification = JSON.parse(event.data)
+        setNotifications((prevNotifications) => [...prevNotifications, newNotification])
+      }
     }
 
     return () => {

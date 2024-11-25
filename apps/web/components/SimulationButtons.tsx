@@ -4,11 +4,11 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 
 const simulationTypes = [
-  { name: 'Normal Activity', endpoint: '/api/simulate/normal' },
-  { name: 'Port Scan', endpoint: '/api/simulate/port-scan' },
-  { name: 'Brute Force Attack', endpoint: '/api/simulate/brute-force' },
-  { name: 'SQL Injection', endpoint: '/api/simulate/sql-injection' },
-  { name: 'DDoS Attack', endpoint: '/api/simulate/ddos' },
+  { name: 'Normal Activity', endpoint: '/api/analyze-logs' },
+  { name: 'Port Scan', endpoint: '/api/analyze-logs' },
+  { name: 'Brute Force Attack', endpoint: '/api/analyze-logs' },
+  { name: 'SQL Injection', endpoint: '/api/analyze-logs' },
+  { name: 'DDoS Attack', endpoint: '/api/analyze-logs' },
 ]
 
 export default function SimulationButtons() {
