@@ -16,10 +16,12 @@ export default function ResultsDisplay() {
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        const response = await fetch('/api/results')
-        if (!response.ok) throw new Error('Failed to fetch results')
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/results`)
+        if (!response.ok) {
+          throw new Error('Failed to fetch results')
+        }
         const data = await response.json()
-        setResults(data)
+        setResults(data.results || data)
       } catch (error) {
         console.error('Error fetching results:', error)
       }
@@ -33,27 +35,20 @@ export default function ResultsDisplay() {
 
   return (
     <div className="w-full max-w-4xl mt-8">
-      <h2 className="text-2xl font-bold mb-4">AI Analysis Results</h2>
-      {results.map((result, index) => (
-        <Card key={index} className="mb-4">
-          <CardHeader>
-            <CardTitle>{result.activity}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p><strong>Timestamp:</strong> {result.timestamp}</p>
-            <p><strong>Risk Level:</strong> 
-              <span className={`font-bold ${
-                result.risk_level === 'Low' ? 'text-green-500' :
-                result.risk_level === 'Medium' ? 'text-yellow-500' : 'text-red-500'
-              }`}>
-                {result.risk_level}
-              </span>
-            </p>
-            <p><strong>Details:</strong> {result.details}</p>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+    <h2 className="text-2xl font-bold mb-4">AI Analysis Results</h2>
+    {results ? (
+      <Card className="mb-4">
+        <CardHeader>
+          <CardTitle>JSON Results</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <pre className="whitespace-pre-wrap">{JSON.stringify(results, null, 2)}</pre>
+        </CardContent>
+      </Card>
+    ) : (
+      <p>No results available.</p>
+    )}
+  </div>
   )
 }
 

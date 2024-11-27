@@ -4,11 +4,11 @@ import { useState } from 'react'
 import { Button } from '@/components/ui/button'
 
 const simulationTypes = [
-  { name: 'Normal Activity', endpoint: '/api/analyze-logs' },
-  { name: 'Port Scan', endpoint: '/api/analyze-logs' },
-  { name: 'Brute Force Attack', endpoint: '/api/analyze-logs' },
-  { name: 'SQL Injection', endpoint: '/api/analyze-logs' },
-  { name: 'DDoS Attack', endpoint: '/api/analyze-logs' },
+  { name: 'Activity (Groq)', endpoint: `${process.env.NEXT_PUBLIC_API_URL}/analyze-logs-groq` },
+  { name: 'Activity (Ollama)', endpoint: `${process.env.NEXT_PUBLIC_API_URL}/analyze-logs-ollama` },
+  // { name: 'Brute Force Attack', endpoint: `${process.env.NEXT_PUBLIC_API_URL}/analyze-logs` },
+  // { name: 'SQL Injection', endpoint: `${process.env.NEXT_PUBLIC_API_URL}/analyze-logs` },
+  // { name: 'DDoS Attack', endpoint: `${process.env.NEXT_PUBLIC_API_URL}/analyze-logs` },
 ]
 
 export default function SimulationButtons() {
@@ -17,8 +17,10 @@ export default function SimulationButtons() {
   const simulateActivity = async (endpoint: string, name: string) => {
     setLoading(name)
     try {
-      const response = await fetch(endpoint, { method: 'POST' })
-      if (!response.ok) throw new Error('Simulation failed')
+      const response = await fetch(endpoint, { method: 'GET' })
+      if (!response.ok) {
+        throw new Error('Simulation failed')
+      }
       // You might want to update some state or trigger a refresh of results here
     } catch (error) {
       console.error('Simulation error:', error)

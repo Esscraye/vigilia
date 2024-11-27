@@ -1,76 +1,121 @@
 import os
 import json
-import subprocess
+import requests
 from fastapi import HTTPException
+from pydantic import BaseModel
 
-# Fonction pour analyser les logs
-async def analyze_logs():
-    log_file_path = os.path.join('logs', 'data2.log')  # Chemin vers le fichier logs
+# Define the Query model
+class Query(BaseModel):
+    prompt: str
+    model: str = "llama3.2"
+
+# Function to analyze logs
+async def analyze_logs_with_ollama():
+    log_file_path = os.path.join('logs', 'data2.log')  # Path to the log file
     if not os.path.exists(log_file_path):
         raise HTTPException(status_code=404, detail="Log file not found")
 
     with open(log_file_path, 'r') as file:
         logs = file.read()
 
-        # Préparer le prompt pour Ollama
+        # Prepare the prompt for Ollama
         prompt = f"""
-    You are an Intrusion Detection System (IDS) that analyzes log files. 
-    Please analyze the following logs and return a response in JSON format. 
-    The response should contain the following elements:
-    - "problem_detected": a boolean indicating whether there is a problem or not.
-    - "problem_type": a string describing the type of problem detected (e.g., "malicious activity", "unauthorized access").
-    - "suspicious_log_lines_count": the number of suspicious log lines detected.
-    - "threat_summaries": a list of summaries of the detected threats.
-    - "details": a list of all malicious log lines with their full content.
+You are an Intrusion Detection System (IDS) that analyzes log files. 
+Please analyze return a response with the following information, and only theese informations:
 
-    Here is an example of the expected JSON format:
-    {
-        "problem_detected": true,
-        "problem_type": "malicious activity",
-        "suspicious_log_lines_count": 5,
-        "threat_summaries": [
-            "Multiple failed login attempts from the same IP address.",
-            "Unauthorized access attempt to sensitive resources."
-        ],
-        "details": [
-            "2023-10-01 12:00:00 - Failed login attempt from IP 192.168.1.1.",
-            "2023-10-01 12:05:00 - Unauthorized access attempt to /admin.",
-            "2023-10-01 12:10:00 - Failed login attempt from IP 192.168.1.1.",
-            "2023-10-01 12:15:00 - Suspicious file access detected.",
-            "2023-10-01 12:20:00 - Multiple failed login attempts from IP 192.168.1.1."
-        ]
-    }
+-    problem_detected
+-    problem_type
+-    suspicious_log_lines_count
+-    threat_summaries
+-    details: [ 
+        - each line is a log line
+    ]
 
-    Logs:
-    {logs}
-    """
+Logs you need to analyze:
+{logs}
+"""
+
+    # Create a Query object
+    query = Query(prompt=prompt)
 
     try:
-        # Appeler Ollama en local avec un pipe (stdin)
-        result = subprocess.run(
-            ["ollama", "run", "llama3.2"],
-            input=prompt,
-            capture_output=True,
-            text=True
+        # Send the request to Ollama
+        response = requests.post(
+            "http://localhost:11434/api/generate",
+            json={"model": query.model,
+                  "prompt": query.prompt,
+                  "stream": False,
+                  "raw": True,
+                  "format": "json",
+                  }
         )
+        response.raise_for_status()  # Raise an error for bad responses
 
-        if result.returncode != 0:
-            raise HTTPException(status_code=500, detail=f"Error from Ollama: {result.stderr}")
-
-        response = result.stdout.strip()
-
-        # Extraire la partie JSON si elle est entourée de ```json ou ```
-        if "```json" in response:
-            response = response.split("```json")[1].split("```")[0]
-        elif "```" in response:
-            response = response.split("```")[1].split("```")[0]
-
-        # Charger la réponse JSON
+        # Get the generated text from the response
+        generated_response = response.json()["response"]
+        print(generated_response)
+        # Load the JSON response
         try:
-            response = json.loads(response)
+            response_json = json.loads(generated_response)
         except json.JSONDecodeError as e:
             raise HTTPException(status_code=500, detail="Invalid JSON response") from e
-        return response
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Exception: {str(e)}") from e
 
+        return response_json
+    except requests.RequestException as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error communicating with Ollama: {str(e)}",
+        ) from e
+
+async def analyze_logs_with_groq():
+    log_file_path = os.path.join('logs', 'data2.log')  # Path to the log file
+    if not os.path.exists(log_file_path):
+        raise HTTPException(status_code=404, detail="Log file not found")
+
+    with open(log_file_path, 'r') as file:
+        logs = file.read()
+
+        # Prepare the prompt for Ollama
+        prompt = f"""
+You are an Intrusion Detection System (IDS) that analyzes log files. 
+Please analyze return a response with the following information, and only theese informations:
+
+-    problem_detected
+-    problem_type
+-    suspicious_log_lines_count
+-    threat_summaries
+-    details: [ 
+        - each line is a log line
+    ]
+
+Logs you need to analyze:
+{logs}
+"""
+
+    # Create a Query object
+    query = Query(
+        model="ollama/ollama-7b-v1",
+        prompt=prompt,
+    )
+
+    try:
+        # Send the request to Ollama
+        response = requests.post(
+            "http://localhost:11434/api/generate",
+            json={"model": query.model,
+                  "prompt": query.prompt,
+                  "stream": False,
+                  "raw": True,
+                  "format": "json",
+                  }
+        )
+        response.raise_for_status()  # Raise an error for bad responses
+
+        response_json = response.json()
+        print("response: ", response_json)
+        return response_json
+    except requests.RequestException as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Error communicating with Ollama: {str(e)}",
+        )    

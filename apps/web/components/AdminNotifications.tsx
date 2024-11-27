@@ -14,11 +14,11 @@ export default function AdminNotifications() {
   const [notifications, setNotifications] = useState<Notification[]>([])
 
   useEffect(() => {
-    const eventSource = new EventSource('/api/notifications/sse')
+    const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_URL}/notifications/sse`)
 
     eventSource.onmessage = (event) => {
       if (event.data) {
-        const newNotification = JSON.parse(event.data)
+        const newNotification = event.data
         setNotifications((prevNotifications) => [...prevNotifications, newNotification])
       }
     }
@@ -29,26 +29,20 @@ export default function AdminNotifications() {
   }, [])
 
   return (
-    <div className="w-full max-w-4xl">
-      {notifications.map((notification) => (
-        <Card key={notification.id} className="mb-4">
-          <CardHeader>
-            <CardTitle>
-              <span className={`font-bold ${
-                notification.severity === 'low' ? 'text-green-500' :
-                notification.severity === 'medium' ? 'text-yellow-500' : 'text-red-500'
-              }`}>
-                {notification.severity.toUpperCase()} SEVERITY
-              </span>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p><strong>Timestamp:</strong> {notification.timestamp}</p>
-            <p><strong>Message:</strong> {notification.message}</p>
-          </CardContent>
-        </Card>
-      ))}
-    </div>
+    <div className="w-full max-w-4xl mt-8">
+    {notifications ? (
+      notifications.map((notification) => (
+      <Card key={notification.id} className="mb-4">
+        <CardHeader>
+          <CardTitle>JSON Results</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <pre className="whitespace-pre-wrap">{JSON.stringify(notification, null, 2)}</pre>
+        </CardContent>
+      </Card>
+    ))):
+    (<p>No notifications available.</p>)}
+  </div>
   )
 }
 
