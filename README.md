@@ -4,33 +4,31 @@ Ce projet montre comment configurer et exécuter un script de détection d'intru
 
 ---
 
-## Prérequis
-Avant de commencer, assurez-vous d'avoir :
-- Un VPS avec un accès SSH.
-- Python 3 installé sur le VPS.
-- Les clés API nécessaires (par exemple, clé OpenAI), si applicable.
-- Une connaissance de base des commandes SSH et de l'utilisation du terminal.
+## Services Inclus
 
----
+Ce dépôt contient les éléments suivants :
 
-## Étapes pour le Déploiement
+- **Service Web** : Une application Next.js située dans le dossier `apps/web`.
+- **Application API** : Une application FastAPI située dans le dossier `apps/server`, que vous pouvez lancer avec la commande :
+  
+  ```bash
+  # Créer un environnement virtuel
+  python -m venv venv
+  # Activer l'environnement virtuel (Windows)
+  venv\Scripts\activate
+  # Activer l'environnement virtuel (macOS/Linux)
+  source venv/bin/activate
+  # Installer les dépendances
+  pip install -r requirements.txt
+  # Lancer l'application FastAPI
+  fastapi dev main.py
+  ```
 
-### 1. Connexion au VPS
-Connectez-vous au VPS via SSH :
-ssh utilisateur@ip_du_vps
+### Configuration des Environnements
 
-### 2. Installer les logiciels requis
-Mettez à jour la liste des paquets et installez Python :
-sudo apt update
-sudo apt install python3 python3-pip -y
+1. Dans le dossier `apps/server`, créez le fichier `.env` à partir de `.env.example`.
+2. Dans le dossier `apps/web`, créez un fichier `.env.local` avec la ligne suivante :
 
-Installez les bibliothèques Python nécessaires :
-pip3 install openai python-dotenv
-
-### 3. Transférer le script vers le VPS
-Depuis votre machine locale, exécutez :
-scp votre_script.py utilisateur@ip_du_vps:/chemin/vers/destination
-
-### 4. Exécuter le script
-Lancez le script manuellement :
-python3 /chemin/vers/detection_intrusion.py
+   ```plaintext
+   NEXT_PUBLIC_API_URL=http://localhost:8000/api
+   ```
