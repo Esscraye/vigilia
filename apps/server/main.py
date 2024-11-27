@@ -23,12 +23,7 @@ class Query(BaseModel):
     model: str = "llama3.2"
 event_queue = []
 
-results = {
-  "timestamp": "string",
-  "activity": "string",
-  "risk_level": "Low",
-  "details": "string"
-}
+results = {}
 
 app.add_middleware(
     CORSMiddleware,
@@ -95,20 +90,20 @@ async def analyze_logs_with_ollama():
 
         # Prepare the prompt for Ollama
         prompt = f"""
-You are an Intrusion Detection System (IDS) that analyzes log files. 
-Please analyze return a response with the following information, and only theese informations:
-
--    problem_detected
--    problem_type
--    suspicious_log_lines_count
--    threat_summaries
--    details: [ 
-        - each line is a log line
-    ]
-
-Logs you need to analyze:
-{logs}
-"""
+            You are an Intrusion Detection System (IDS) that analyzes log files. 
+            Please analyze the following logs and return a JSON response indicating whether there is a malicious events or not. 
+                
+            Structure of the JSON output : 
+                is_malicious_event_detected: string,
+                number_of_malicious_events_detected: string,
+                most_frequent_malicious_event: 
+                    event_type: string,
+                    source_ip: ip address,
+                    destination_ip: ip address,
+                    message: string
+            Logs:
+            {logs}
+        """
 
     # Create a Query object
     query = Query(prompt=prompt)
@@ -151,14 +146,14 @@ async def analyze_logs_with_groq():
         messages=[
             {
                 "role": "system",
-                "content": "You are an Intrusion Detection System (IDS) that analyzes log files. Please analyze the following logs and return a JSON response indicating whether there is a problem or not."
+                "content": "You are an Intrusion Detection System (IDS) that analyzes log files. Please analyze the following logs and return a JSON response indicating whether there is a malicious event or not. \n\nStructure of the JSON output:\n  is_malicious_event_detected: string,\n  number_of_malicious_events_detected: string,\n  most_frequent_malicious_event:\n    event_type: string,\n    source_ip: ip address,\n    destination_ip: ip address,\n    message: string"
             },
             {
                 "role": "user",
-                "content": logs,  # Envoyer le contenu des logs
+                "content": logs,  # Send the content of the logs
             }
         ],
-        model="llama-3.1-70b-versatile",  # Modèle à utiliser
+        model="llama-3.1-70b-versatile",  # Model to use
         stream=False,
     )
 
