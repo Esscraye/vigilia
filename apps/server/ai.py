@@ -16,8 +16,7 @@ async def analyze_logs():
     prompt = f"""
     You are an Intrusion Detection System (IDS) that analyzes log files. 
     Please analyze the following logs and return a JSON response indicating whether there is a malicious events or not. 
-    In the output please identify : is_malicious_event_detected, number of malicious event detected, most frequently malicious event detected
-
+        
     Structure of the JSON output : 
         is_malicious_event_detected: string,
         number_of_malicious_events_detected: string,
