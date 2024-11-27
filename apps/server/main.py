@@ -155,13 +155,10 @@ async def analyze_logs_with_groq():
         ],
         model="llama-3.1-70b-versatile",  # Model to use
         stream=False,
+        response_format={"type": "json_object"}
     )
 
     response = chat_completion.choices[0].message.content  # Récupérer la réponse de l'IA
-    if "```json" in response:
-        response = response.split("```json")[1].split("```")[0]
-    elif "```" in response:
-        response = response.split("```")[1].split("```")[0]
     print(response)
     try:
         response = json.loads(response)
