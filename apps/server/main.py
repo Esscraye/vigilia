@@ -81,7 +81,7 @@ async def get_results():
 
 # Function to analyze logs
 async def analyze_logs_with_ollama():
-    log_file_path = os.path.join('logs', 'data2.log')  # Path to the log file
+    log_file_path = os.path.join('logs', 'log2.log')  # Path to the log file
     if not os.path.exists(log_file_path):
         raise HTTPException(status_code=404, detail="Log file not found")
 
@@ -137,7 +137,7 @@ async def analyze_logs_with_ollama():
         ) from e
 
 async def analyze_logs_with_groq():
-    log_file_path = os.path.join('logs', 'data.log')  # Remplacez par le nom de votre fichier log
+    log_file_path = os.path.join('logs', 'log1.log')  # Remplacez par le nom de votre fichier log
     with open(log_file_path, 'r') as file:
         logs = file.read()
     

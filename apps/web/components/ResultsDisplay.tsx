@@ -3,15 +3,9 @@
 import { useState, useEffect } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 
-interface AIAnalysisResult {
-  timestamp: string
-  activity: string
-  risk_level: 'Low' | 'Medium' | 'High'
-  details: string
-}
 
 export default function ResultsDisplay() {
-  const [results, setResults] = useState<AIAnalysisResult[]>([])
+  const [results, setResults] = useState<JSON | null>(null)
 
   useEffect(() => {
     const fetchResults = async () => {

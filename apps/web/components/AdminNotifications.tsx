@@ -3,21 +3,15 @@
 import { useState, useEffect } from 'react'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 
-interface Notification {
-  id: string
-  timestamp: string
-  message: string
-  severity: 'low' | 'medium' | 'high'
-}
 
 export default function AdminNotifications() {
-  const [notifications, setNotifications] = useState<Notification[]>([])
+  const [notifications, setNotifications] = useState<JSON[]>([])
 
   useEffect(() => {
     const eventSource = new EventSource(`${process.env.NEXT_PUBLIC_API_URL}/notifications/sse`)
 
     eventSource.onmessage = (event) => {
-      if (event.data) {
+      if (event.data && event.data !== 'event') {
         const newNotification = event.data
         setNotifications((prevNotifications) => [...prevNotifications, newNotification])
       }
@@ -31,8 +25,8 @@ export default function AdminNotifications() {
   return (
     <div className="w-full max-w-4xl mt-8">
     {notifications ? (
-      notifications.map((notification) => (
-      <Card key={notification.id} className="mb-4">
+      notifications.map((notification, index) => (
+      <Card className="mb-4" key={index}>
         <CardHeader>
           <CardTitle>JSON Results</CardTitle>
         </CardHeader>
